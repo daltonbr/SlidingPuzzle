@@ -2,12 +2,14 @@
 using System.Runtime.InteropServices.WindowsRuntime;
 using UnityEditorInternal;
 using UnityEngine;
+using UnityEngine.UI;
 
 public class Puzzle : MonoBehaviour
 {
     [UnityEngine.Range(1,10)]
     [SerializeField] private int _blocksPerLine = 4;
 
+    [SerializeField] private Texture2D image;
     private Camera _camera;
     private Block _emptyBlock;
 
@@ -24,25 +26,22 @@ public class Puzzle : MonoBehaviour
 
     public void InstantiateQuads(int blocksPerLine)
     {
-        if (blocksPerLine <= 0)
-        {
-            throw new ArgumentOutOfRangeException();
-        }
-
+        var imageSlices = ImageSlicer.GetSlices(image, _blocksPerLine);
         var offset = blocksPerLine / 2f - 0.5f;
 
         for (int row = 0; row < blocksPerLine; row++)
         {
             for (int column = 0; column < blocksPerLine; column++)
             {
-                var instantiatePosition = new Vector3(column - offset, row - offset, 0f);
+                var instantiatePosition = new Vector3(row - offset, column - offset, 0f);
                 var quad = GameObject.CreatePrimitive(PrimitiveType.Quad);
                 quad.transform.position = instantiatePosition;
                 quad.transform.SetParent(transform);
                 quad.gameObject.name = $"quad{row}x{column}";
                 var block = quad.AddComponent<Block>();
-                block.coord = new Vector2Int(row, column);
                 block.OnBlockPressed += PlayerMoveBlockInput;
+
+                block.Init(new Vector2Int(row, column), imageSlices[row, column]);
 
                 if (column == blocksPerLine - 1 && row == 0)
                 {
@@ -106,8 +105,3 @@ public class Puzzle : MonoBehaviour
     }
 }
 
-/*
-  20 21 22
-  10 11 12
-  00 01 02
-*/
