@@ -102,25 +102,7 @@ public class Puzzle : MonoBehaviour
 
     private bool IsValidMove(Vector2Int coord)
     {
-        var emptyBlockCoord = _emptyBlock.coord;
-
-        if (coord.x == emptyBlockCoord.x)
-        {
-            if (Mathf.Abs(coord.y - emptyBlockCoord.y) == 1)
-            {
-                return true;
-            }
-        }
-
-        if (coord.y == emptyBlockCoord.y)
-        {
-            if (Mathf.Abs(coord.x - emptyBlockCoord.x) == 1)
-            {
-                return true;
-            }
-        }
-
-        return false;
+        return (coord - _emptyBlock.coord).sqrMagnitude == 1;
     }
 }
 
