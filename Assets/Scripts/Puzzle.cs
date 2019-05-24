@@ -1,14 +1,16 @@
 ﻿using System;
+using System.Collections.Generic;
 using UnityEngine;
 
 public class Puzzle : MonoBehaviour
 {
     [UnityEngine.Range(1,10)]
     [SerializeField] private int _blocksPerLine = 4;
-
     [SerializeField] private Texture2D image;
     private Camera _camera;
     private Block _emptyBlock;
+    //private Queue<Block> moveQueue = new Queue<Block>();
+    private Coroutine _animationCoroutine;
 
     private void Awake()
     {
@@ -88,7 +90,7 @@ public class Puzzle : MonoBehaviour
         // Change the transform's
         var positionToMove = _emptyBlock.transform.position;
         _emptyBlock.transform.position = blockToMove.transform.position;
-        blockToMove.transform.position = positionToMove;
+        blockToMove.MoveToPosition(positionToMove, 0.5f);
     }
 
     private bool IsValidMove(Block blockToMove)
