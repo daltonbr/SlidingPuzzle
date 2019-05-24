@@ -1,8 +1,5 @@
 ﻿using System;
-using System.Runtime.InteropServices.WindowsRuntime;
-using UnityEditorInternal;
 using UnityEngine;
-using UnityEngine.UI;
 
 public class Puzzle : MonoBehaviour
 {

@@ -1,6 +1,4 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
+﻿using UnityEngine;
 
 public static class ImageSlicer
 {
@@ -26,6 +24,7 @@ public static class ImageSlicer
                 var texture = new Texture2D(blockSize,blockSize);
                 var pixels = image.GetPixels(xOffset + i * blockSize, yOffset + j * blockSize, blockSize, blockSize);
 
+                texture.wrapMode = TextureWrapMode.Clamp;
                 texture.SetPixels(pixels);
                 texture.Apply();
                 slices[i, j] = texture;

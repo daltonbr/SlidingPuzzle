@@ -1,7 +1,6 @@
-﻿using System;
-using UnityEngine;
-using UnityEngine.EventSystems;
+﻿using UnityEngine;
 
+[RequireComponent(typeof(MeshRenderer))]
 public class Block : MonoBehaviour
 {
     public event System.Action<Block> OnBlockPressed;
@@ -10,7 +9,9 @@ public class Block : MonoBehaviour
     public void Init(Vector2Int startingCoord, Texture2D texture2D)
     {
         coord = startingCoord;
-        GetComponent<MeshRenderer>().material.mainTexture = texture2D;
+        var material = GetComponent<MeshRenderer>().material;
+        material.shader = Shader.Find("Unlit/Texture");
+        material.mainTexture = texture2D;
     }
 
     private void OnMouseDown()
