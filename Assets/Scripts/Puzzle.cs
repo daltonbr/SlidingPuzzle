@@ -4,13 +4,15 @@ using UnityEngine;
 
 public class Puzzle : MonoBehaviour
 {
+    [SerializeField] private float moveDuration = 0.5f;
     [UnityEngine.Range(1,10)]
     [SerializeField] private int _blocksPerLine = 4;
     [SerializeField] private Texture2D image;
     private Camera _camera;
     private Block _emptyBlock;
-    //private Queue<Block> moveQueue = new Queue<Block>();
+    private Queue<Block> moveQueue = new Queue<Block>();
     private Coroutine _animationCoroutine;
+    private bool _blockIsMoving;
 
     private void Awake()
     {
@@ -39,6 +41,7 @@ public class Puzzle : MonoBehaviour
                 quad.gameObject.name = $"quad{row}x{column}";
                 var block = quad.AddComponent<Block>();
                 block.OnBlockPressed += PlayerMoveBlockInput;
+                block.OnFinishedMoving += HandleBlockFinishedMoving;
 
                 block.Init(new Vector2Int(row, column), imageSlices[row, column]);
 
@@ -75,8 +78,12 @@ public class Puzzle : MonoBehaviour
     /// </summary>
     private void PlayerMoveBlockInput(Block blockToMove)
     {
-        //Debug.Log($"Block pressed: {blockToMove.gameObject.name}");
+        moveQueue.Enqueue(blockToMove);
+        MakeNextPlayerMove();
+    }
 
+    private void MoveBlock(Block blockToMove)
+    {
         if (!IsValidMove(blockToMove.coord))
         {
             return;
@@ -90,7 +97,22 @@ public class Puzzle : MonoBehaviour
         // Change the transform's
         var positionToMove = _emptyBlock.transform.position;
         _emptyBlock.transform.position = blockToMove.transform.position;
-        blockToMove.MoveToPosition(positionToMove, 0.5f);
+        blockToMove.MoveToPosition(positionToMove, moveDuration);
+        _blockIsMoving = true;
+    }
+
+    private void HandleBlockFinishedMoving()
+    {
+        _blockIsMoving = false;
+        MakeNextPlayerMove();
+    }
+
+    private void MakeNextPlayerMove()
+    {
+        while (moveQueue.Count > 0 && !_blockIsMoving)
+        {
+            MoveBlock(moveQueue.Dequeue());
+        }
     }
 
     private bool IsValidMove(Block blockToMove)

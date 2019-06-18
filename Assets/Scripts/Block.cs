@@ -5,6 +5,7 @@ using UnityEngine;
 public class Block : MonoBehaviour
 {
     public event System.Action<Block> OnBlockPressed;
+    public event System.Action OnFinishedMoving;
     public Vector2Int coord;
 
     public void Init(Vector2Int startingCoord, Texture2D texture2D)
@@ -20,8 +21,6 @@ public class Block : MonoBehaviour
         OnBlockPressed?.Invoke(this);
     }
 
-    //private bool _isAnimating;
-
     public void MoveToPosition(Vector2 target, float duration)
     {
         StartCoroutine(AnimateMove(target, duration));
@@ -29,7 +28,6 @@ public class Block : MonoBehaviour
 
     private IEnumerator AnimateMove(Vector2 target, float duration)
     {
-        //_isAnimating = true;
         var initialPosition = transform.position;
         float percent = 0f;
         while (percent < 1f)
@@ -40,7 +38,7 @@ public class Block : MonoBehaviour
         }
 
         transform.position = target;
-        //_isAnimating = false;
+        OnFinishedMoving?.Invoke();
     }
 
 }
