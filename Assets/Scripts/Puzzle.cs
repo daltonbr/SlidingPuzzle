@@ -10,7 +10,8 @@ public class Puzzle : MonoBehaviour
     private int shuffleLength;
 
     [Header("Board & move")]
-    [SerializeField] private float moveDuration = 0.5f;
+    [SerializeField] private float defaultMoveDuration = 0.3f;
+    [SerializeField] private float shuffleMoveMoveDuration = 0.1f;
     [UnityEngine.Range(1,10)]
     [SerializeField] private int _blocksPerLine = 4;
     [SerializeField] private Texture2D image;
@@ -19,7 +20,8 @@ public class Puzzle : MonoBehaviour
     private Block[,] _blocks;
     private Queue<Block> moveQueue = new Queue<Block>();
     private Coroutine _animationCoroutine;
-    private int shuffleRemaining;
+    private int _shuffleMovesRemaining;
+    private Vector2Int _previousShuffleOffset;
 
     // Flags
     private bool _blockIsMoving;
@@ -47,20 +49,11 @@ public class Puzzle : MonoBehaviour
     private void TryToShuffle()
     {
         _readyToShuffle = true;
-        shuffleRemaining = shuffleLength;
+        _shuffleMovesRemaining = shuffleLength;
 
         if (!_readyToShuffle) return;
 
         MakeNextShuffleMove();
-        for (int i = 0; i < shuffleLength; i++)
-        {
-
-        }
-        // define a number of random moves to shuffle. TIP we can save a tuple with the current moves to solve.
-        //_emptyBlock
-
-        // apply this "movements"
-
     }
 
     public void InstantiateQuads(int blocksPerLine)
@@ -121,7 +114,7 @@ public class Puzzle : MonoBehaviour
         MakeNextPlayerMove();
     }
 
-    private void MoveBlock(Block blockToMove)
+    private void MoveBlock(Block blockToMove, float duration)
     {
         if (!IsValidMove(blockToMove.coord))
         {
@@ -140,7 +133,7 @@ public class Puzzle : MonoBehaviour
         var positionToMove = _emptyBlock.transform.position;
         _emptyBlock.transform.position = blockToMove.transform.position;
         _blockIsMoving = true;
-        blockToMove.MoveToPosition(positionToMove, moveDuration);
+        blockToMove.MoveToPosition(positionToMove, duration);
     }
 
     private void HandleBlockFinishedMoving()
@@ -148,7 +141,7 @@ public class Puzzle : MonoBehaviour
         _blockIsMoving = false;
         MakeNextPlayerMove();
 
-        if (shuffleRemaining > 0)
+        if (_shuffleMovesRemaining > 0)
         {
             MakeNextShuffleMove();
         }
@@ -158,7 +151,7 @@ public class Puzzle : MonoBehaviour
     {
         while (moveQueue.Count > 0 && !_blockIsMoving)
         {
-            MoveBlock(moveQueue.Dequeue());
+            MoveBlock(moveQueue.Dequeue(), defaultMoveDuration);
         }
     }
 
@@ -182,16 +175,20 @@ public class Puzzle : MonoBehaviour
             new Vector2Int( 0,-1)     // left
         };
 
+        int randomIndex = Random.Range(0, offsets.Length);
         for (int i = 0; i < offsets.Length; i++)
         {
-            int randomIndex = Random.Range(0, offsets.Length);
             Vector2Int offset = offsets[(randomIndex + i) % offsets.Length];
-            Vector2Int moveBlockCoord = _emptyBlock.coord + offset;
-            if (IsInsideBoundary(moveBlockCoord))
+            if (offset != _previousShuffleOffset * -1)
             {
-                MoveBlock(_blocks[moveBlockCoord.x, moveBlockCoord.y]);
-                shuffleRemaining--;
-                break;
+                Vector2Int moveBlockCoord = _emptyBlock.coord + offset;
+                if (IsInsideBoundary(moveBlockCoord))
+                {
+                    MoveBlock(_blocks[moveBlockCoord.x, moveBlockCoord.y], shuffleMoveMoveDuration);
+                    _shuffleMovesRemaining--;
+                    _previousShuffleOffset = offset;
+                    break;
+                }
             }
         }
     }

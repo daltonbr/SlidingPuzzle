@@ -232,8 +232,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6b5dae5f3ccbf4e1dbf1ae4e14ea0604, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  shuffleLength: 400
-  moveDuration: 0.03
+  shuffleLength: 100
+  defaultMoveDuration: 0.5
+  shuffleMoveMoveDuration: 0.05
   _blocksPerLine: 4
   image: {fileID: 2800000, guid: e69a0a79ab73d4dd18512ad509fee852, type: 3}
 --- !u!4 &815823882
