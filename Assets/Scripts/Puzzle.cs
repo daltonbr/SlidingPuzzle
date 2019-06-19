@@ -23,9 +23,15 @@ public class Puzzle : MonoBehaviour
     private int _shuffleMovesRemaining;
     private Vector2Int _previousShuffleOffset;
 
-    // Flags
+    private enum PuzzleState
+    {
+        Solved,
+        Shuffling,
+        InPlay
+    };
+
+    private PuzzleState _state;
     private bool _blockIsMoving;
-    private bool _readyToShuffle = false;
 
     private void Awake()
     {
@@ -40,18 +46,16 @@ public class Puzzle : MonoBehaviour
 
     private void Update()
     {
-        if (Input.GetKeyUp(KeyCode.Space))
+        if (_state == PuzzleState.Solved && Input.GetKeyUp(KeyCode.Space))
         {
-            TryToShuffle();
+            StartShuffle();
         }
     }
 
-    private void TryToShuffle()
+    private void StartShuffle()
     {
-        _readyToShuffle = true;
+        _state = PuzzleState.Shuffling;
         _shuffleMovesRemaining = shuffleLength;
-
-        if (!_readyToShuffle) return;
 
         MakeNextShuffleMove();
     }
@@ -110,8 +114,11 @@ public class Puzzle : MonoBehaviour
     /// </summary>
     private void PlayerMoveBlockInput(Block blockToMove)
     {
-        moveQueue.Enqueue(blockToMove);
-        MakeNextPlayerMove();
+        if (_state == PuzzleState.InPlay)
+        {
+            moveQueue.Enqueue(blockToMove);
+            MakeNextPlayerMove();
+        }
     }
 
     private void MoveBlock(Block blockToMove, float duration)
@@ -139,11 +146,20 @@ public class Puzzle : MonoBehaviour
     private void HandleBlockFinishedMoving()
     {
         _blockIsMoving = false;
-        MakeNextPlayerMove();
-
-        if (_shuffleMovesRemaining > 0)
+        if (_state == PuzzleState.InPlay)
         {
-            MakeNextShuffleMove();
+            MakeNextPlayerMove();
+        }
+        else if (_state == PuzzleState.Shuffling)
+        {
+            if (_shuffleMovesRemaining > 0)
+            {
+                MakeNextShuffleMove();
+            }
+            else
+            {
+                _state = PuzzleState.InPlay;
+            }
         }
     }
 
