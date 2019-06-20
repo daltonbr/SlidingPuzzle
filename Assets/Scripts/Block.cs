@@ -7,13 +7,13 @@ public class Block : MonoBehaviour
     public event System.Action<Block> OnBlockPressed;
     public event System.Action OnFinishedMoving;
     public Vector2Int coord;
+    private Vector2Int _startingCoord;
 
     public void Init(Vector2Int startingCoord, Texture2D texture2D)
     {
-        coord = startingCoord;
-        var material = GetComponent<MeshRenderer>().material;
-        material.shader = Shader.Find("Unlit/Texture");
-        material.mainTexture = texture2D;
+        _startingCoord = coord = startingCoord;
+        GetComponent<MeshRenderer>().material = Resources.Load<Material>("Block");
+        GetComponent<MeshRenderer>().material.mainTexture = texture2D;
     }
 
     private void OnMouseDown()
@@ -39,6 +39,11 @@ public class Block : MonoBehaviour
 
         transform.position = target;
         OnFinishedMoving?.Invoke();
+    }
+
+    public bool IsAtStartingCoord()
+    {
+        return coord == _startingCoord;
     }
 
 }

@@ -1,6 +1,8 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
 using Random = UnityEngine.Random;
 
 public class Puzzle : MonoBehaviour
@@ -13,7 +15,7 @@ public class Puzzle : MonoBehaviour
     [SerializeField] private float defaultMoveDuration = 0.3f;
     [SerializeField] private float shuffleMoveMoveDuration = 0.1f;
     [UnityEngine.Range(1,10)]
-    [SerializeField] private int _blocksPerLine = 4;
+    [SerializeField] private int blocksPerLine = 4;
     [SerializeField] private Texture2D image;
     private Camera _camera;
     private Block _emptyBlock;
@@ -40,14 +42,17 @@ public class Puzzle : MonoBehaviour
 
     private void Start()
     {
-        AdjustCameraView(_blocksPerLine);
-        InstantiateQuads(_blocksPerLine);
+        AdjustCameraView(blocksPerLine);
+        InstantiateQuads(blocksPerLine);
     }
 
     private void Update()
     {
-        if (_state == PuzzleState.Solved && Input.GetKeyUp(KeyCode.Space))
+        if (_state == PuzzleState.Solved &&
+            (Input.GetKeyUp(KeyCode.Space) || Input.touchCount > 0 ))
         {
+            //Touch touch = Input.GetTouch(0);
+
             StartShuffle();
         }
     }
@@ -55,6 +60,8 @@ public class Puzzle : MonoBehaviour
     private void StartShuffle()
     {
         _state = PuzzleState.Shuffling;
+        Message.Instance.DisableText();
+        _emptyBlock.gameObject.SetActive(false);
         _shuffleMovesRemaining = shuffleLength;
 
         MakeNextShuffleMove();
@@ -63,7 +70,7 @@ public class Puzzle : MonoBehaviour
     public void InstantiateQuads(int blocksPerLine)
     {
         _blocks = new Block[blocksPerLine, blocksPerLine];
-        var imageSlices = ImageSlicer.GetSlices(image, _blocksPerLine);
+        var imageSlices = ImageSlicer.GetSlices(image, this.blocksPerLine);
         var offset = blocksPerLine / 2f - 0.5f;
 
         for (int row = 0; row < blocksPerLine; row++)
@@ -81,13 +88,9 @@ public class Puzzle : MonoBehaviour
 
                 block.Init(new Vector2Int(row, column), imageSlices[row, column]);
                 _blocks[row, column] = block;
-                if (column == blocksPerLine - 1 && row == 0)
-                {
-                    quad.SetActive(false);
-                    _emptyBlock = block;
-                }
             }
         }
+        _emptyBlock = _blocks[blocksPerLine - 1, blocksPerLine - 1];
     }
 
     //TODO: make this adjustment happens when resolution change
@@ -146,6 +149,12 @@ public class Puzzle : MonoBehaviour
     private void HandleBlockFinishedMoving()
     {
         _blockIsMoving = false;
+        if (CheckIfSolved())
+        {
+            // Wait a few seconds and restart
+            StartCoroutine(DisplayStartMessageAfterSeconds(3f));
+        }
+
         if (_state == PuzzleState.InPlay)
         {
             MakeNextPlayerMove();
@@ -161,6 +170,12 @@ public class Puzzle : MonoBehaviour
                 _state = PuzzleState.InPlay;
             }
         }
+    }
+
+    private IEnumerator DisplayStartMessageAfterSeconds(float seconds)
+    {
+        yield return new WaitForSeconds(seconds);
+        Message.Instance.SetMessage("Tap to play!");
     }
 
     private void MakeNextPlayerMove()
@@ -211,7 +226,23 @@ public class Puzzle : MonoBehaviour
 
     private bool IsInsideBoundary(Vector2Int coord)
     {
-        return coord.x >= 0 && coord.x < _blocksPerLine && coord.y >= 0 && coord.y < _blocksPerLine;
+        return coord.x >= 0 && coord.x < blocksPerLine && coord.y >= 0 && coord.y < blocksPerLine;
+    }
+
+    private bool CheckIfSolved()
+    {
+        foreach (var block in _blocks)
+        {
+            if (!block.IsAtStartingCoord())
+            {
+                return false;
+            }
+        }
+
+        _state = PuzzleState.Solved;
+        Message.Instance.SetMessage("You Win");
+        _emptyBlock.gameObject.SetActive(true);
+        return true;
     }
 }
 

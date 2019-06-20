@@ -34,16 +34,3 @@ public static class ImageSlicer
         return slices;
     }
 }
-
-
-/*
-
- Color[] pix = sourceTex.GetPixels(x, y, width, height);
-        Texture2D destTex = new Texture2D(width, height);
-        destTex.SetPixels(pix);
-        destTex.Apply();
-
-        // Set the current object's texture to show the
-        // extracted rectangle.
-        GetComponent<Renderer>().material.mainTexture = destTex;
-*/
